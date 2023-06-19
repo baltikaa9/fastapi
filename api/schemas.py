@@ -32,6 +32,7 @@ class UserCreate(BaseModel):
         regex=LETTER_MATCH_PATTERN, description="Surname must contain only letters"
     )
     email: EmailStr
+    password: str
 
 
 class UpdateUserRequest(BaseModel):
@@ -42,6 +43,11 @@ class UpdateUserRequest(BaseModel):
         regex=LETTER_MATCH_PATTERN, description="Name must contain only letters"
     )
     email: EmailStr | None
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
 # endregion

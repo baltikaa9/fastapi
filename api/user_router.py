@@ -5,12 +5,14 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
 
 from api.schemas import UpdateUserRequest
 from api.schemas import UserCreate
 from api.schemas import UserShow
 from db.dals import UserDAL
 from db.session import get_async_session
+from hashing import Hasher
 
 user_router = APIRouter()
 
@@ -19,7 +21,10 @@ async def _create_new_user(body: UserCreate, session: AsyncSession) -> UserShow 
     # async with session.begin():
     user_dal = UserDAL(session)
     user = await user_dal.create_user(
-        name=body.name, surname=body.surname, email=body.email
+        name=body.name,
+        surname=body.surname,
+        email=body.email,
+        hashed_password=Hasher.get_password_hash(body.password),
     )
 
     if user:
@@ -87,7 +92,8 @@ async def create_user(
         return user
     else:
         raise HTTPException(
-            status_code=409, detail=f"User with email {body.email} already exists."
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User with email {body.email} already exists.",
         )
 
 
@@ -100,7 +106,8 @@ async def delete_user(
         return user
     else:
         raise HTTPException(
-            status_code=404, detail=f"User with id {user_id} not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found.",
         )
 
 
@@ -113,7 +120,8 @@ async def get_user_by_id(
         return user
     else:
         raise HTTPException(
-            status_code=404, detail=f"User with id {user_id} not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found.",
         )
 
 
@@ -126,7 +134,7 @@ async def update_user(
     updated_user_params = body.dict(exclude_none=True)
     if updated_user_params == {}:
         raise HTTPException(
-            status_code=422,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="At least one parameter for user update info must provided.",
         )
     user = await _update_user(user_id, updated_user_params, session)
@@ -134,11 +142,13 @@ async def update_user(
         return user
     elif user is False:
         raise HTTPException(
-            status_code=409, detail=f"User with email {body.email} already exists."
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User with email {body.email} already exists.",
         )
     elif user is None:
         raise HTTPException(
-            status_code=404, detail=f"User with id {user_id} not found."
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found.",
         )
 
 
