@@ -2,9 +2,11 @@
 import re
 import uuid
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel
+from pydantic import EmailStr
+from pydantic import Field
 
-LETTER_MATCH_PATTERN = re.compile(r'^[а-яА-Яa-zA-Z\-]+$')
+LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 
 
 class TunedModel(BaseModel):
@@ -23,14 +25,22 @@ class UserShow(TunedModel):
 
 
 class UserCreate(BaseModel):
-    name: str = Field(regex=LETTER_MATCH_PATTERN, description='Name must contain only letters')
-    surname: str = Field(regex=LETTER_MATCH_PATTERN, description='Surname must contain only letters')
+    name: str = Field(
+        regex=LETTER_MATCH_PATTERN, description="Name must contain only letters"
+    )
+    surname: str = Field(
+        regex=LETTER_MATCH_PATTERN, description="Surname must contain only letters"
+    )
     email: EmailStr
 
 
 class UpdateUserRequest(BaseModel):
-    name: str | None = Field(regex=LETTER_MATCH_PATTERN, description='Name must contain only letters')
-    surname: str | None = Field(regex=LETTER_MATCH_PATTERN, description='Name must contain only letters')
+    name: str | None = Field(
+        regex=LETTER_MATCH_PATTERN, description="Name must contain only letters"
+    )
+    surname: str | None = Field(
+        regex=LETTER_MATCH_PATTERN, description="Name must contain only letters"
+    )
     email: EmailStr | None
 
 

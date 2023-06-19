@@ -1,7 +1,8 @@
 # region Interaction with database in business context
 from uuid import UUID
 
-from sqlalchemy import update, select
+from sqlalchemy import select
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,8 +16,12 @@ class UserDAL:
         self.db_session = db_session
 
     async def create_user(self, name: str, surname: str, email: str) -> User | None:
-        statement = update(User).where((User.email == email) & (User.is_active == False)).values(is_active=True) \
+        statement = (
+            update(User)
+            .where((User.email == email) & (User.is_active == False))
+            .values(is_active=True)
             .returning(User)
+        )
         user = await self.db_session.execute(statement)
         await self.db_session.commit()
         user = user.fetchone()
@@ -24,11 +29,7 @@ class UserDAL:
             return user[0]
 
         else:
-            new_user = User(
-                name=name,
-                surname=surname,
-                email=email
-            )
+            new_user = User(name=name, surname=surname, email=email)
             self.db_session.add(new_user)
             # await self.db_session.flush()
             try:
@@ -50,8 +51,12 @@ class UserDAL:
             return user[0]
 
     async def update_user(self, user_id: UUID, **kwargs) -> User | bool | None:
-        statement = update(User).where((User.id == user_id) & (User.is_active == True)).values(kwargs) \
+        statement = (
+            update(User)
+            .where((User.id == user_id) & (User.is_active == True))
+            .values(kwargs)
             .returning(User)
+        )
         try:
             user = await self.db_session.execute(statement)
         except IntegrityError:
@@ -60,5 +65,6 @@ class UserDAL:
         user = user.fetchone()
         if user:
             return user[0]
+
 
 # endregion
