@@ -1,7 +1,8 @@
 # region Common interaction with database
 from typing import Generator
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 import settings
@@ -15,5 +16,6 @@ async def get_async_session() -> Generator:
     """Dependency for getting async session"""
     async with async_session() as session:
         yield session
+
 
 # endregion

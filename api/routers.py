@@ -1,10 +1,14 @@
 # region API Routes
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.schemas import UserCreate, UserShow, UpdateUserRequest
+from api.schemas import UpdateUserRequest
+from api.schemas import UserCreate
+from api.schemas import UserShow
 from db.dals import UserDAL
 from db.session import get_async_session
 
@@ -15,9 +19,7 @@ async def _create_new_user(body: UserCreate, session: AsyncSession) -> UserShow 
     # async with session.begin():
     user_dal = UserDAL(session)
     user = await user_dal.create_user(
-        name=body.name,
-        surname=body.surname,
-        email=body.email
+        name=body.name, surname=body.surname, email=body.email
     )
 
     if user:
@@ -26,7 +28,7 @@ async def _create_new_user(body: UserCreate, session: AsyncSession) -> UserShow 
             name=user.name,
             surname=user.surname,
             email=user.email,
-            is_active=user.is_active
+            is_active=user.is_active,
         )
 
 
@@ -40,7 +42,7 @@ async def _delete_user(user_id: UUID, session: AsyncSession) -> UserShow | None:
             name=user.name,
             surname=user.surname,
             email=user.email,
-            is_active=user.is_active
+            is_active=user.is_active,
         )
 
 
@@ -54,11 +56,13 @@ async def _get_user_by_id(user_id: UUID, session: AsyncSession) -> UserShow | No
             name=user.name,
             surname=user.surname,
             email=user.email,
-            is_active=user.is_active
+            is_active=user.is_active,
         )
 
 
-async def _update_user(user_id: UUID, updated_user_params: dict, session: AsyncSession) -> UserShow | bool | None:
+async def _update_user(
+    user_id: UUID, updated_user_params: dict, session: AsyncSession
+) -> UserShow | bool | None:
     user_dal = UserDAL(session)
     user = await user_dal.update_user(user_id, **updated_user_params)
 
@@ -68,50 +72,74 @@ async def _update_user(user_id: UUID, updated_user_params: dict, session: AsyncS
             name=user.name,
             surname=user.surname,
             email=user.email,
-            is_active=user.is_active
+            is_active=user.is_active,
         )
     elif user is False:
         return False
 
 
-@user_router.post('/')
-async def create_user(body: UserCreate, session: AsyncSession = Depends(get_async_session)) -> UserShow:
+@user_router.post("/")
+async def create_user(
+    body: UserCreate, session: AsyncSession = Depends(get_async_session)
+) -> UserShow:
     user = await _create_new_user(body, session)
     if user:
         return user
     else:
-        raise HTTPException(status_code=409, detail=f'User with email {body.email} already exists.')
+        raise HTTPException(
+            status_code=409, detail=f"User with email {body.email} already exists."
+        )
 
 
-@user_router.delete('/')
-async def delete_user(user_id: UUID, session: AsyncSession = Depends(get_async_session)) -> UserShow:
+@user_router.delete("/")
+async def delete_user(
+    user_id: UUID, session: AsyncSession = Depends(get_async_session)
+) -> UserShow:
     user = await _delete_user(user_id, session)
     if user:
         return user
     else:
-        raise HTTPException(status_code=404, detail=f'User with id {user_id} not found.')
+        raise HTTPException(
+            status_code=404, detail=f"User with id {user_id} not found."
+        )
 
 
-@user_router.get('/')
-async def get_user_by_id(user_id: UUID, session: AsyncSession = Depends(get_async_session)) -> UserShow:
+@user_router.get("/")
+async def get_user_by_id(
+    user_id: UUID, session: AsyncSession = Depends(get_async_session)
+) -> UserShow:
     user = await _get_user_by_id(user_id, session)
     if user:
         return user
     else:
-        raise HTTPException(status_code=404, detail=f'User with id {user_id} not found.')
+        raise HTTPException(
+            status_code=404, detail=f"User with id {user_id} not found."
+        )
 
 
-@user_router.patch('/')
-async def update_user(user_id: UUID, body: UpdateUserRequest, session: AsyncSession = Depends(get_async_session)) -> UserShow:
+@user_router.patch("/")
+async def update_user(
+    user_id: UUID,
+    body: UpdateUserRequest,
+    session: AsyncSession = Depends(get_async_session),
+) -> UserShow:
     updated_user_params = body.dict(exclude_none=True)
     if updated_user_params == {}:
-        raise HTTPException(status_code=422, detail='At least one parameter for user update info must provided.')
+        raise HTTPException(
+            status_code=422,
+            detail="At least one parameter for user update info must provided.",
+        )
     user = await _update_user(user_id, updated_user_params, session)
     if user:
         return user
     elif user is False:
-        raise HTTPException(status_code=409, detail=f'User with email {body.email} already exists.')
+        raise HTTPException(
+            status_code=409, detail=f"User with email {body.email} already exists."
+        )
     elif user is None:
-        raise HTTPException(status_code=404, detail=f'User with id {user_id} not found.')
+        raise HTTPException(
+            status_code=404, detail=f"User with id {user_id} not found."
+        )
+
 
 # endregion
