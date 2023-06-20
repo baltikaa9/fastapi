@@ -34,10 +34,3 @@ async def login_for_access_token(
         expires_delta=access_token_expires,
     )
     return Token(access_token=access_token, token_type="bearer")
-
-
-# @login_router.get("/test_auth_endpoint")
-# async def sample_endpoint_under_jwt(
-#     current_user: User = Depends(get_current_user_from_token),
-# ):
-#     return {"Success": True, "current_user": current_user}
