@@ -1,12 +1,12 @@
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 import settings
-from api.login_router import oauth2_schema
 from db.dals import UserDAL
 from db.models import User
 from db.session import get_async_session
@@ -25,6 +25,9 @@ async def authenticate_user(
     if not user:
         return
     return user if Hasher.verify_password(password, user.hashed_password) else None
+
+
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="/login/token")
 
 
 async def get_current_user_from_token(

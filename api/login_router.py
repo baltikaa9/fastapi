@@ -3,7 +3,6 @@ from datetime import timedelta
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
-from fastapi.security.oauth2 import OAuth2PasswordBearer
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -37,9 +36,6 @@ async def login_for_access_token(
         expires_delta=access_token_expires,
     )
     return Token(access_token=access_token, token_type="bearer")
-
-
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="/login/token")
 
 
 @login_router.get("/test_auth_endpoint")
