@@ -115,7 +115,7 @@ async def update_user(
 @user_router.get("/me")
 async def get_me(
     current_user: User = Depends(get_current_user_from_token),
-) -> UserShowSecure:
+) -> UserShowSecure | None:
     return current_user
 
 

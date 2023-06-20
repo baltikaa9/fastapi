@@ -1,5 +1,4 @@
 # region Interaction with database in business context
-from enum import Enum
 from uuid import UUID
 
 from sqlalchemy import select
@@ -7,13 +6,8 @@ from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from db.models import PortalRole
 from db.models import User
-
-
-class PortalRole(str, Enum):
-    ROLE_USER = "ROLE_USER"
-    ROLE_ADMIN = "ROLE_ADMIN"
-    ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN"
 
 
 class UserDAL:

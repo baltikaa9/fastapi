@@ -1,4 +1,5 @@
 # region Database models
+from enum import Enum
 from uuid import UUID
 from uuid import uuid4
 
@@ -14,6 +15,12 @@ class Base(DeclarativeBase):
     ...
 
 
+class PortalRole(str, Enum):
+    ROLE_USER = "ROLE_USER"
+    ROLE_ADMIN = "ROLE_ADMIN"
+    ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -24,6 +31,14 @@ class User(Base):
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
     roles: list[str] = Column(ARRAY(String), nullable=False)
+
+    @property
+    def is_admin(self):
+        return PortalRole.ROLE_ADMIN in self.roles
+
+    @property
+    def id_superadmin(self):
+        return PortalRole.ROLE_SUPER_ADMIN in self.roles
 
 
 # endregion
