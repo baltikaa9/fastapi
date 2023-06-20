@@ -33,11 +33,11 @@ class User(Base):
     roles: list[str] = Column(ARRAY(String), nullable=False)
 
     @property
-    def is_admin(self):
+    def is_admin(self) -> bool:
         return PortalRole.ROLE_ADMIN in self.roles
 
     @property
-    def id_superadmin(self):
+    def is_superadmin(self) -> bool:
         return PortalRole.ROLE_SUPER_ADMIN in self.roles
 
 

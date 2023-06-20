@@ -46,17 +46,13 @@ async def _update_user(
 
 
 def check_user_permissions(target_user: User, current_user: User) -> bool:
-    if PortalRole.ROLE_SUPER_ADMIN in target_user.roles:
+    if target_user.is_superadmin:
         raise HTTPException(
             status_code=406, detail="Superadmin cannot be deleted via API."
         )
     if target_user.id != current_user.id:
-        if not {PortalRole.ROLE_ADMIN, PortalRole.ROLE_SUPER_ADMIN}.intersection(
-            current_user.roles
-        ):
+        if not any((current_user.is_admin, current_user.is_superadmin)):
             return False
-        if (PortalRole.ROLE_ADMIN in current_user.roles) and (
-            PortalRole.ROLE_ADMIN in target_user.roles
-        ):
+        if current_user.is_admin and target_user.is_admin:
             return False
     return True
