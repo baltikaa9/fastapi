@@ -12,6 +12,8 @@ from db.models import User
 from db.session import get_async_session
 from hashing import Hasher
 
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="/login/token")
+
 
 async def _get_user_by_email_for_auth(email: str, session: AsyncSession) -> User | None:
     user_dal = UserDAL(session)
@@ -27,13 +29,10 @@ async def authenticate_user(
     return user if Hasher.verify_password(password, user.hashed_password) else None
 
 
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="/login/token")
-
-
 async def get_current_user_from_token(
     token: str = Depends(oauth2_schema),
     session: AsyncSession = Depends(get_async_session),
-):
+) -> User | None:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -51,3 +50,26 @@ async def get_current_user_from_token(
     user = await _get_user_by_email_for_auth(email, session)
     if user:
         return user
+
+
+# async def get_current_user_id_from_token(
+#     token: str = Depends(oauth2_schema),
+#     session: AsyncSession = Depends(get_async_session),
+# ) -> UUID | None:
+#     credentials_exception = HTTPException(
+#         status_code=status.HTTP_401_UNAUTHORIZED,
+#         detail="Could not validate credentials",
+#     )
+#     try:
+#         payload = jwt.decode(
+#             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+#         )
+#
+#         email = payload.get("sub")
+#         if not email:
+#             raise credentials_exception
+#     except JWTError:
+#         raise credentials_exception
+#     user = await _get_user_by_email_for_auth(email, session)
+#     if user:
+#         return user.id

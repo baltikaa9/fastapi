@@ -16,11 +16,14 @@ class TunedModel(BaseModel):
         orm_mode = True
 
 
-class UserShow(TunedModel):
-    id: uuid.UUID
+class UserShowSecure(TunedModel):
     name: str
     surname: str
     email: EmailStr
+
+
+class UserShow(UserShowSecure):
+    id: uuid.UUID
     is_active: bool
 
 
