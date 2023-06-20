@@ -119,4 +119,28 @@ async def get_me(
     return current_user
 
 
+@user_router.patch("/admin_privilege")
+async def grant_admin_privilege(
+    user_id: UUID,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(get_current_user_from_token),
+) -> str:
+    if not current_user.is_superadmin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
+    user_for_promotion = await _get_user_by_id(user_id, session)
+    if not user_for_promotion:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found.",
+        )
+    if user_for_promotion.is_admin | user_for_promotion.is_superadmin:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User with id {user_id} already promoted to admin.",
+        )
+    updated_user_params = {"roles": {*user_for_promotion.add_admin_privilege()}}
+    await _update_user(user_id, updated_user_params, session)
+    return f"User {user_id} has been promoted to admin"
+
+
 # endregion

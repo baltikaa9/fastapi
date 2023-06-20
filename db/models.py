@@ -40,5 +40,8 @@ class User(Base):
     def is_superadmin(self) -> bool:
         return PortalRole.ROLE_SUPER_ADMIN in self.roles
 
+    def add_admin_privilege(self):
+        return self.roles + [PortalRole.ROLE_ADMIN]
+
 
 # endregion

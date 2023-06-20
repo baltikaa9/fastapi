@@ -53,6 +53,6 @@ def check_user_permissions(target_user: User, current_user: User) -> bool:
     if target_user.id != current_user.id:
         if not any((current_user.is_admin, current_user.is_superadmin)):
             return False
-        if current_user.is_admin and target_user.is_admin:
+        if current_user.is_admin & target_user.is_admin:
             return False
     return True
