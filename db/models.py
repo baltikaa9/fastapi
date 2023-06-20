@@ -43,5 +43,8 @@ class User(Base):
     def add_admin_privilege(self):
         return self.roles + [PortalRole.ROLE_ADMIN]
 
+    def remove_admin_privilege(self):
+        return [role for role in self.roles if role != PortalRole.ROLE_ADMIN]
+
 
 # endregion

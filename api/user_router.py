@@ -1,9 +1,11 @@
 # region API Routes
+from logging import getLogger
 from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -19,6 +21,8 @@ from api.schemas import UserShow
 from api.schemas import UserShowSecure
 from db.models import User
 from db.session import get_async_session
+
+logger = getLogger(__name__)
 
 user_router = APIRouter()
 
@@ -139,8 +143,40 @@ async def grant_admin_privilege(
             detail=f"User with id {user_id} already promoted to admin.",
         )
     updated_user_params = {"roles": {*user_for_promotion.add_admin_privilege()}}
-    await _update_user(user_id, updated_user_params, session)
-    return f"User {user_id} has been promoted to admin"
+    try:
+        await _update_user(user_id, updated_user_params, session)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=503, detail=f"Database error: {err}")
+    return f"User {user_id} has been promoted to admin."
+
+
+@user_router.delete("/admin_privilege")
+async def revoke_admin_privilege(
+    user_id: UUID,
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(get_current_user_from_token),
+) -> str:
+    if not current_user.is_superadmin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
+    user_for_revoke = await _get_user_by_id(user_id, session)
+    if not user_for_revoke:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {user_id} not found.",
+        )
+    if not user_for_revoke.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User with id {user_id} has no admin privileges.",
+        )
+    updated_user_params = {"roles": {*user_for_revoke.remove_admin_privilege()}}
+    try:
+        await _update_user(user_id, updated_user_params, session)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=503, detail=f"Database error: {err}")
+    return f"User {user_id} has no admin privileges."
 
 
 # endregion
