@@ -6,6 +6,8 @@ from pydantic import BaseModel
 from pydantic import EmailStr
 from pydantic import Field
 
+from db.models import PortalRole
+
 LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 
 
@@ -20,6 +22,7 @@ class UserShowSecure(TunedModel):
     name: str
     surname: str
     email: EmailStr
+    roles: list[PortalRole]
 
 
 class UserShow(UserShowSecure):

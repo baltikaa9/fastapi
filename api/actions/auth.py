@@ -51,5 +51,8 @@ async def get_current_user_from_token(
     except JWTError:
         raise credentials_exception
     user = await _get_user_by_email_for_auth(email, session)
-    if user:
-        return user
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="You are deleted!"
+        )
+    return user
