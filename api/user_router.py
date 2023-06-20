@@ -142,7 +142,7 @@ async def grant_admin_privilege(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"User with id {user_id} already promoted to admin.",
         )
-    updated_user_params = {"roles": {*user_for_promotion.add_admin_privilege()}}
+    updated_user_params = {"roles": user_for_promotion.add_admin_privilege()}
     try:
         await _update_user(user_id, updated_user_params, session)
     except IntegrityError as err:
@@ -170,7 +170,7 @@ async def revoke_admin_privilege(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"User with id {user_id} has no admin privileges.",
         )
-    updated_user_params = {"roles": {*user_for_revoke.remove_admin_privilege()}}
+    updated_user_params = {"roles": user_for_revoke.remove_admin_privilege()}
     try:
         await _update_user(user_id, updated_user_params, session)
     except IntegrityError as err:

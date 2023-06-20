@@ -41,10 +41,10 @@ class User(Base):
         return PortalRole.ROLE_SUPER_ADMIN in self.roles
 
     def add_admin_privilege(self):
-        return self.roles + [PortalRole.ROLE_ADMIN]
+        return {*self.roles, PortalRole.ROLE_ADMIN}
 
     def remove_admin_privilege(self):
-        return [role for role in self.roles if role != PortalRole.ROLE_ADMIN]
+        return {role for role in self.roles if role != PortalRole.ROLE_ADMIN}
 
 
 # endregion

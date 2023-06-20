@@ -50,6 +50,7 @@ def check_user_permissions(target_user: User, current_user: User) -> bool:
         raise HTTPException(
             status_code=406, detail="Superadmin cannot be deleted via API."
         )
+    print(current_user)
     if target_user.id != current_user.id:
         if not any((current_user.is_admin, current_user.is_superadmin)):
             return False
