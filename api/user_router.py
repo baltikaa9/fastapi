@@ -7,80 +7,16 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
+from api.actions.user import _create_new_user
+from api.actions.user import _delete_user
+from api.actions.user import _get_user_by_id
+from api.actions.user import _update_user
 from api.schemas import UpdateUserRequest
 from api.schemas import UserCreate
 from api.schemas import UserShow
-from db.dals import UserDAL
 from db.session import get_async_session
-from hashing import Hasher
 
 user_router = APIRouter()
-
-
-async def _create_new_user(body: UserCreate, session: AsyncSession) -> UserShow | None:
-    # async with session.begin():
-    user_dal = UserDAL(session)
-    user = await user_dal.create_user(
-        name=body.name,
-        surname=body.surname,
-        email=body.email,
-        hashed_password=Hasher.get_password_hash(body.password),
-    )
-
-    if user:
-        return UserShow(
-            id=user.id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
-        )
-
-
-async def _delete_user(user_id: UUID, session: AsyncSession) -> UserShow | None:
-    user_dal = UserDAL(session)
-    user = await user_dal.delete_user(user_id)
-
-    if user:
-        return UserShow(
-            id=user.id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
-        )
-
-
-async def _get_user_by_id(user_id: UUID, session: AsyncSession) -> UserShow | None:
-    user_dal = UserDAL(session)
-    user = await user_dal.get_user_by_id(user_id)
-
-    if user:
-        return UserShow(
-            id=user.id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
-        )
-
-
-async def _update_user(
-    user_id: UUID, updated_user_params: dict, session: AsyncSession
-) -> UserShow | bool | None:
-    user_dal = UserDAL(session)
-    user = await user_dal.update_user(user_id, **updated_user_params)
-
-    if user:
-        return UserShow(
-            id=user.id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
-        )
-    elif user is False:
-        return False
 
 
 @user_router.post("/")

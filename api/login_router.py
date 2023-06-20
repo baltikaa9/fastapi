@@ -11,28 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 import settings
+from api.actions.auth import _get_user_by_email_for_auth
+from api.actions.auth import authenticate_user
 from api.schemas import Token
-from db.dals import UserDAL
 from db.models import User
 from db.session import get_async_session
-from hashing import Hasher
 from security import create_access_token
 
 login_router = APIRouter()
-
-
-async def _get_user_by_email_for_auth(email: str, session: AsyncSession) -> User | None:
-    user_dal = UserDAL(session)
-    return await user_dal.get_user_by_email(email)
-
-
-async def authenticate_user(
-    email: str, password: str, session: AsyncSession
-) -> User | None:
-    user = await _get_user_by_email_for_auth(email, session)
-    if not user:
-        return
-    return user if Hasher.verify_password(password, user.hashed_password) else None
 
 
 @login_router.post("/token")
