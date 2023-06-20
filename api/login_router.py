@@ -5,14 +5,12 @@ from fastapi import Depends
 from fastapi import HTTPException
 from fastapi.security.oauth2 import OAuth2PasswordBearer
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
-from jose import jwt
-from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 import settings
-from api.actions.auth import _get_user_by_email_for_auth
 from api.actions.auth import authenticate_user
+from api.actions.auth import get_current_user_from_token
 from api.schemas import Token
 from db.models import User
 from db.session import get_async_session
@@ -42,29 +40,6 @@ async def login_for_access_token(
 
 
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="/login/token")
-
-
-async def get_current_user_from_token(
-    token: str = Depends(oauth2_schema),
-    session: AsyncSession = Depends(get_async_session),
-):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-    )
-    try:
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
-
-        email = payload.get("sub")
-        if not email:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    user = await _get_user_by_email_for_auth(email, session)
-    if user:
-        return user
 
 
 @login_router.get("/test_auth_endpoint")
