@@ -1,74 +1,62 @@
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.schemas import UserCreate
-from api.schemas import UserShow
+from db.dals import PortalRole
 from db.dals import UserDAL
+from db.models import User
 from hashing import Hasher
 
 
-async def _create_new_user(body: UserCreate, session: AsyncSession) -> UserShow | None:
+async def _create_new_user(body: UserCreate, session: AsyncSession) -> User | None:
     # async with session.begin():
     user_dal = UserDAL(session)
     user = await user_dal.create_user(
         name=body.name,
         surname=body.surname,
         email=body.email,
-        hashed_password=Hasher.get_password_hash(body.password),
+        password=Hasher.get_password_hash(body.password),
+        roles=[
+            PortalRole.ROLE_USER,
+        ],
     )
-
-    if user:
-        return UserShow(
-            id=user.id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
-        )
+    return user
 
 
-async def _delete_user(user_id: UUID, session: AsyncSession) -> UserShow | None:
+async def _delete_user(user_id: UUID, session: AsyncSession) -> User | None:
     user_dal = UserDAL(session)
     user = await user_dal.delete_user(user_id)
-
-    if user:
-        return UserShow(
-            id=user.id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
-        )
+    return user
 
 
-async def _get_user_by_id(user_id: UUID, session: AsyncSession) -> UserShow | None:
+async def _get_user_by_id(user_id: UUID, session: AsyncSession) -> User | None:
     user_dal = UserDAL(session)
     user = await user_dal.get_user_by_id(user_id)
-
-    if user:
-        return UserShow(
-            id=user.id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
-        )
+    return user
 
 
 async def _update_user(
     user_id: UUID, updated_user_params: dict, session: AsyncSession
-) -> UserShow | bool | None:
+) -> User | bool | None:
     user_dal = UserDAL(session)
     user = await user_dal.update_user(user_id, **updated_user_params)
+    return user
 
-    if user:
-        return UserShow(
-            id=user.id,
-            name=user.name,
-            surname=user.surname,
-            email=user.email,
-            is_active=user.is_active,
+
+def check_user_permissions(target_user: User, current_user: User) -> bool:
+    if PortalRole.ROLE_SUPER_ADMIN in target_user.roles:
+        raise HTTPException(
+            status_code=406, detail="Superadmin cannot be deleted via API."
         )
-    elif user is False:
-        return False
+    if target_user.id != current_user.id:
+        if not {PortalRole.ROLE_ADMIN, PortalRole.ROLE_SUPER_ADMIN}.intersection(
+            current_user.roles
+        ):
+            return False
+        if (PortalRole.ROLE_ADMIN in current_user.roles) and (
+            PortalRole.ROLE_ADMIN in target_user.roles
+        ):
+            return False
+    return True

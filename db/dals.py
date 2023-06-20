@@ -1,4 +1,5 @@
 # region Interaction with database in business context
+from enum import Enum
 from uuid import UUID
 
 from sqlalchemy import select
@@ -9,6 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import User
 
 
+class PortalRole(str, Enum):
+    ROLE_USER = "ROLE_USER"
+    ROLE_ADMIN = "ROLE_ADMIN"
+    ROLE_SUPER_ADMIN = "ROLE_SUPER_ADMIN"
+
+
 class UserDAL:
     """Data Access Layer for operating user info"""
 
@@ -16,7 +23,12 @@ class UserDAL:
         self.db_session = db_session
 
     async def create_user(
-        self, name: str, surname: str, email: str, hashed_password: str
+        self,
+        name: str,
+        surname: str,
+        email: str,
+        password: str,
+        roles: list[PortalRole],
     ) -> User | None:
         statement = (
             update(User)
@@ -32,7 +44,7 @@ class UserDAL:
 
         else:
             new_user = User(
-                name=name, surname=surname, email=email, hashed_password=hashed_password
+                name=name, surname=surname, email=email, password=password, roles=roles
             )
             self.db_session.add(new_user)
             # await self.db_session.flush()
