@@ -28,7 +28,7 @@ async def authenticate_user(
     user = await _get_user_by_email_for_auth(email, session)
     if not user:
         return
-    return user if Hasher.verify_password(password, user.hashed_password) else None
+    return user if Hasher.verify_password(password, user.password) else None
 
 
 async def get_current_user_from_token(
