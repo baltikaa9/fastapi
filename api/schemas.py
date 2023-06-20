@@ -16,11 +16,14 @@ class TunedModel(BaseModel):
         orm_mode = True
 
 
-class UserShow(TunedModel):
-    id: uuid.UUID
+class UserShowSecure(TunedModel):
     name: str
     surname: str
     email: EmailStr
+
+
+class UserShow(UserShowSecure):
+    id: uuid.UUID
     is_active: bool
 
 
@@ -32,6 +35,7 @@ class UserCreate(BaseModel):
         regex=LETTER_MATCH_PATTERN, description="Surname must contain only letters"
     )
     email: EmailStr
+    password: str
 
 
 class UpdateUserRequest(BaseModel):
@@ -42,6 +46,11 @@ class UpdateUserRequest(BaseModel):
         regex=LETTER_MATCH_PATTERN, description="Name must contain only letters"
     )
     email: EmailStr | None
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
 # endregion
