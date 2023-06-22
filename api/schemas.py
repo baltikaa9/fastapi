@@ -32,10 +32,14 @@ class UserShow(UserShowSecure):
 
 class UserCreate(BaseModel):
     name: str = Field(
-        regex=LETTER_MATCH_PATTERN, description="Name must contain only letters"
+        regex=LETTER_MATCH_PATTERN,
+        description="Name must contain only letters",
+        default="zxc",
     )
     surname: str = Field(
-        regex=LETTER_MATCH_PATTERN, description="Surname must contain only letters"
+        regex=LETTER_MATCH_PATTERN,
+        description="Surname must contain only letters",
+        default="zxc",
     )
     email: EmailStr
     password: str
